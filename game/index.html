@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AZURA BAY — City of Glass and Gold</title>
+<style>
+  @font-face { font-family: 'Anton'; src: url('./fonts/Anton-Regular.ttf') format('truetype'); font-display: swap; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1020; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .hud { position: fixed; z-index: 5; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,.7); }
+  .anton { font-family: 'Anton', 'Arial Narrow', sans-serif; letter-spacing: .5px; }
+  .panel { background: rgba(8, 12, 26, .72); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; backdrop-filter: blur(2px); }
+
+  /* mission box, top left */
+  #mission { top: 14px; left: 14px; width: 340px; }
+  #mission .mhead { background: linear-gradient(90deg, #ffb400, #ff5e3a); color: #14080a; font-size: 15px; padding: 5px 10px; border-radius: 6px 6px 0 0; display: flex; gap: 8px; align-items: center; }
+  #mission .mhead .stage { background: #14080a; color: #ffd34d; font-size: 11px; padding: 2px 7px; border-radius: 3px; }
+  #mission .mbody { padding: 8px 10px 9px; }
+  #mission .obj { font-family: 'Anton', sans-serif; font-size: 21px; line-height: 1.05; color: #ffe9a8; }
+  #mission .objbar { height: 6px; background: rgba(255,255,255,.18); border-radius: 3px; margin: 6px 0; overflow: hidden; }
+  #mission .objbar i { display: block; height: 100%; background: linear-gradient(90deg, #37e08b, #a5ff6e); }
+  #mission .sub { font-size: 12.5px; color: #cfe3ff; }
+  #mission .sub b { color: #ffd34d; }
+
+  /* police response panel */
+  #response { top: 158px; left: 14px; width: 300px; padding: 8px 10px; }
+  #response .rhead { display: flex; justify-content: space-between; font-family: 'Anton', sans-serif; font-size: 15px; color: #ff8fa3; }
+  #response .rhead span:last-child { color: #fff; font-size: 12px; align-self: center; }
+  #response table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+  #response td { padding: 2.5px 0; color: #dce8ff; }
+  #response td:nth-child(2) { color: #8fd8ff; text-align: left; }
+  #response td:nth-child(3) { text-align: right; color: #ffd34d; font-weight: 700; }
+  #response .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+  /* district label */
+  #district { top: 338px; left: 14px; }
+  #district .dname { font-family: 'Anton', sans-serif; font-size: 26px; color: #ffe9a8; line-height: 1; }
+  #district .dstreet { font-size: 12.5px; color: #cfe3ff; }
+  #district .dbar { width: 190px; height: 7px; background: rgba(255,255,255,.18); border-radius: 4px; margin-top: 5px; overflow: hidden; }
+  #district .dbar i { display: block; height: 100%; background: #37e08b; }
+  #district .dtag { font-size: 11px; color: #9fe8c0; margin-top: 3px; }
+
+  /* minimap + vitals, bottom left */
+  #minimap-wrap { left: 14px; bottom: 14px; width: 218px; }
+  #minimap { width: 218px; height: 158px; display: block; border-radius: 6px; border: 2px solid rgba(255,255,255,.35); background: #101c2e; }
+  #vitals { margin-top: 6px; padding: 7px 9px; font-size: 12px; font-weight: 700; }
+  #vitals .row { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+  #vitals .lab { width: 58px; color: #cfe3ff; }
+  #vitals .bar { flex: 1; height: 8px; background: rgba(255,255,255,.18); border-radius: 4px; overflow: hidden; }
+  #vitals .bar i { display: block; height: 100%; }
+  #vitals .num { width: 24px; text-align: right; }
+
+  /* top right cluster */
+  #topright { top: 12px; right: 14px; text-align: right; }
+  #clock { font-size: 15px; color: #dce8ff; font-weight: 700; }
+  #money { font-family: 'Anton', sans-serif; font-size: 34px; color: #7dffb0; line-height: 1; }
+  #stars { font-size: 22px; letter-spacing: 3px; color: #ffd34d; margin-top: 2px; }
+  #stars .off { color: rgba(255,255,255,.25); }
+  #airunit { margin-top: 4px; font-size: 11.5px; font-weight: 800; color: #ff9db0; letter-spacing: 1px; }
+
+  /* rank + weapons + crew, right side */
+  #rank { top: 128px; right: 14px; width: 216px; padding: 7px 10px; text-align: left; }
+  #rank .rrow { display: flex; justify-content: space-between; font-family: 'Anton', sans-serif; font-size: 15px; }
+  #rank .rrow .rb { color: #37e08b; } #rank .rrow .rf { color: #ffd34d; }
+  #rank .rbar { height: 7px; background: rgba(255,255,255,.18); border-radius: 4px; margin-top: 5px; overflow: hidden; }
+  #rank .rbar i { display: block; height: 100%; background: linear-gradient(90deg, #37e08b, #a5ff6e); }
+  #rank .rsub { font-size: 11px; color: #cfe3ff; margin-top: 3px; text-align: right; }
+  #weapons { top: 196px; right: 14px; display: flex; gap: 6px; }
+  .wslot { width: 62px; padding: 6px 4px 5px; text-align: center; background: rgba(8,12,26,.72); border: 1px solid rgba(255,255,255,.16); border-radius: 6px; }
+  .wslot.sel { border-color: #ffd34d; box-shadow: 0 0 0 1px #ffd34d; }
+  .wslot .k { font-size: 10px; color: #8fd8ff; font-weight: 800; }
+  .wslot .ic { font-size: 19px; line-height: 1.15; }
+  .wslot .nm { font-size: 10px; color: #dce8ff; font-weight: 700; }
+  .wslot .am { font-size: 11px; color: #ffd34d; font-weight: 800; }
+  #crew { top: 292px; right: 14px; width: 216px; display: flex; flex-direction: column; gap: 6px; }
+  .card { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: rgba(8,12,26,.78); border: 1px solid rgba(255,255,255,.16); border-radius: 6px; }
+  .card .av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 16px; color: #14080a; flex: none; }
+  .card .ct { font-family: 'Anton', sans-serif; font-size: 14px; color: #ffe9a8; line-height: 1; }
+  .card .cs { font-size: 11px; color: #cfe3ff; }
+  .card .key { margin-left: auto; font-size: 11px; font-weight: 800; color: #8fd8ff; border: 1px solid rgba(143,216,255,.5); border-radius: 4px; padding: 2px 6px; }
+
+  /* speed, bottom right */
+  #speedo { right: 16px; bottom: 14px; text-align: right; }
+  #speedo .spd { font-family: 'Anton', sans-serif; font-size: 62px; line-height: .9; color: #fff; }
+  #speedo .unit { font-size: 14px; font-weight: 800; color: #cfe3ff; letter-spacing: 2px; }
+  #speedo .car { font-family: 'Anton', sans-serif; font-size: 17px; color: #37e08b; margin-top: 2px; }
+  #speedo .dmg { font-size: 12.5px; font-weight: 800; color: #ffd34d; }
+  #radio { font-size: 12px; color: #cfe3ff; margin-top: 4px; }
+
+  /* dialogue, bottom centre */
+  #dialogue { left: 50%; bottom: 18px; transform: translateX(-50%); width: 520px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+  #dialogue .av { width: 46px; height: 46px; border-radius: 8px; flex: none; display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 20px; color: #14080a; background: linear-gradient(135deg, #37e08b, #19b8ff); }
+  #dialogue .who { font-family: 'Anton', sans-serif; font-size: 15px; color: #7dffb0; }
+  #dialogue .line { font-size: 13.5px; color: #fff; line-height: 1.35; }
+
+  /* centre toast */
+  #toast { left: 50%; top: 22%; transform: translateX(-50%); text-align: center; display: none; }
+  #toast .big { font-family: 'Anton', sans-serif; font-size: 44px; color: #ffe9a8; }
+  #toast .small { font-size: 15px; font-weight: 700; color: #cfe3ff; }
+
+  /* start + pause screens */
+  .screen { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: linear-gradient(180deg, rgba(6,8,20,.25) 0%, rgba(6,8,20,.72) 78%); pointer-events: auto; }
+  .screen h1 { font-family: 'Anton', sans-serif; font-size: 92px; line-height: .95; background: linear-gradient(180deg, #fff6c9 20%, #ffc93c 55%, #ff5e3a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 0 rgba(0,0,0,.55)) drop-shadow(0 10px 24px rgba(0,0,0,.6)); }
+  .screen h2 { font-family: 'Anton', sans-serif; font-size: 26px; letter-spacing: 6px; color: #7dffb0; margin-top: 6px; }
+  .screen p { max-width: 560px; color: #dce8ff; font-size: 15px; line-height: 1.5; margin-top: 14px; }
+  .screen .btn { pointer-events: auto; cursor: pointer; margin-top: 26px; font-family: 'Anton', sans-serif; font-size: 22px; letter-spacing: 2px; color: #14080a; background: linear-gradient(90deg, #ffd34d, #ff9a3d); border: none; border-radius: 8px; padding: 12px 42px; box-shadow: 0 6px 0 #a33d00, 0 12px 30px rgba(0,0,0,.5); }
+  .screen .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a33d00; }
+  .screen .keys { margin-top: 18px; font-size: 12.5px; color: #9fb6d8; line-height: 1.7; }
+  .screen .keys b { color: #ffd34d; }
+  #pause-screen { display: none; }
+  #loading { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: #0b1020; color: #ffd34d; font-family: 'Anton', sans-serif; font-size: 26px; letter-spacing: 3px; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="loading">LOADING AZURA BAY…</div>
+
+<div class="hud" id="mission">
+  <div class="mhead"><span class="stage" id="m-stage">STAGE 3/4</span><span id="m-title">MISSION 6 — THE GLASS RUN</span></div>
+  <div class="mbody panel" style="border-radius:0 0 6px 6px;border-top:none">
+    <div class="obj" id="m-obj">LOSE THE REGENT</div>
+    <div class="objbar"><i id="m-bar" style="width:62%"></i></div>
+    <div class="sub" id="m-sub">Outrun the Regent's convoy before it reaches the marina.<br><b>NEXT</b> &nbsp;Vanish into the night market</div>
+  </div>
+</div>
+
+<div class="hud panel" id="response">
+  <div class="rhead"><span>APD RESPONSE</span><span id="r-units">6 UNITS</span></div>
+  <table id="r-table"></table>
+</div>
+
+<div class="hud" id="district">
+  <div class="dname" id="d-name">GOLDEN STRAND</div>
+  <div class="dstreet" id="d-street">Strand Boulevard</div>
+  <div class="dbar"><i id="d-bar" style="width:58%"></i></div>
+  <div class="dtag" id="d-tag">NEUTRAL · 58</div>
+</div>
+
+<div class="hud" id="minimap-wrap">
+  <canvas id="minimap" width="218" height="158"></canvas>
+  <div class="panel" id="vitals">
+    <div class="row"><span class="lab">HEALTH</span><span class="bar"><i id="v-hp" style="width:72%;background:#37e08b"></i></span><span class="num" id="v-hpn">72</span></div>
+    <div class="row"><span class="lab">ARMOUR</span><span class="bar"><i id="v-ar" style="width:55%;background:#4aa8ff"></i></span><span class="num" id="v-arn">55</span></div>
+  </div>
+</div>
+
+<div class="hud" id="topright">
+  <div id="clock">16:00</div>
+  <div id="money">$18,450</div>
+  <div id="stars">★★★★★</div>
+  <div id="airunit">▲ AIR UNIT DEPLOYED</div>
+</div>
+
+<div class="hud panel" id="rank">
+  <div class="rrow"><span class="rb">RANK B</span><span class="rf">FIXER</span></div>
+  <div class="rbar"><i id="rank-bar" style="width:75%"></i></div>
+  <div class="rsub" id="rank-sub">3,900 / 5,200 RP</div>
+</div>
+
+<div class="hud" id="weapons">
+  <div class="wslot"><div class="k">1</div><div class="ic">✊</div><div class="nm">FISTS</div><div class="am">∞</div></div>
+  <div class="wslot"><div class="k">2</div><div class="ic">🔫</div><div class="nm">.38</div><div class="am">60</div></div>
+  <div class="wslot sel"><div class="k">3</div><div class="ic">🔫</div><div class="nm">SMG</div><div class="am">30/60</div></div>
+  <div class="wslot"><div class="k">4</div><div class="ic">💥</div><div class="nm">12G</div><div class="am">18</div></div>
+  <div class="wslot"><div class="k">5</div><div class="ic">🎯</div><div class="nm">AR-9</div><div class="am">—</div></div>
+</div>
+
+<div class="hud" id="crew">
+  <div class="card"><div class="av" style="background:linear-gradient(135deg,#ffd34d,#ff9a3d)">Z</div><div><div class="ct">SWAP PLATES</div><div class="cs">Zara · Driver</div></div><span class="key">Z</span></div>
+  <div class="card"><div class="av" style="background:linear-gradient(135deg,#7dffb0,#19b8ff)">21</div><div><div class="ct">QUICK FIX</div><div class="cs">Rio · Mechanic</div></div><span class="key">X</span></div>
+  <div class="card"><div class="av" style="background:linear-gradient(135deg,#ff8fd8,#8f7bff)">K</div><div><div class="ct">EYES OUT</div><div class="cs">Kiki · Lookout</div></div><span class="key">C</span></div>
+</div>
+
+<div class="hud" id="speedo">
+  <div><span class="spd" id="spd">111</span> <span class="unit">KM/H</span></div>
+  <div class="car" id="carname">SOLARA GT</div>
+  <div class="dmg" id="cardmg">62% DENTED</div>
+  <div id="radio">♪ AZURA 98.4 — Island Pop</div>
+</div>
+
+<div class="hud panel" id="dialogue">
+  <div class="av">KV</div>
+  <div><div class="who" id="dlg-who">KIRA VOSS</div><div class="line" id="dlg-line">He's making for the marina! Cut the Regent off before it reaches the water!</div></div>
+</div>
+
+<div class="hud" id="toast"><div class="big" id="toast-big"></div><div class="small" id="toast-small"></div></div>
+
+<div class="screen" id="start-screen">
+  <h1>AZURA BAY</h1>
+  <h2>CITY OF GLASS AND GOLD</h2>
+  <p>Sun, sea and stolen supercars. Outrun the Azura PD down the Golden
+  Strand, vanish through the neon night market, and turn your ride to solid
+  gold at Azura Customs. The city is yours — if you can keep it.</p>
+  <button class="btn" id="play-btn">▶ &nbsp;PLAY</button>
+  <div class="keys"><b>WASD</b> drive / walk &nbsp;·&nbsp; <b>SPACE</b> handbrake &nbsp;·&nbsp; <b>E</b> enter / exit car &nbsp;·&nbsp; <b>SHIFT</b> sprint<br><b>Z / X / C</b> crew abilities &nbsp;·&nbsp; <b>M</b> missions &nbsp;·&nbsp; <b>P</b> pause &nbsp;·&nbsp; <b>1–5</b> weapons</div>
+</div>
+
+<div class="screen" id="pause-screen">
+  <h1 style="font-size:64px">PAUSED</h1>
+  <p>Azura Bay waits for no one. Your save is kept on this machine.</p>
+  <button class="btn" id="resume-btn">▶ &nbsp;RESUME</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
